@@ -4,11 +4,14 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
 // Size of 128x32 OLED screen
 #define MAXX 128
 #define MAXY 32
 #define MAXROWS 4
+
+#include "image.h"
 
 // Co-ord of centre of screen
 #define CENX (MAXX / 2)
@@ -84,8 +87,8 @@ struct UART_BUFFER
 // UART buffers
 struct UART_BUFFER U1Buf;
 
-// The frame buffer, 1024 bytes
-unsigned char Frame[MAXROWS][MAXX];
+// The frame buffer, 512 bytes
+uint8_t Frame[MAXROWS][MAXX];
 
 uint32_t SavedRccCsr = 0u;
 volatile uint32_t Milliseconds = 0;
@@ -230,23 +233,16 @@ void i2c1_txa(const uint8_t addr)
 
 void i2c1_txd(const uint8_t data)
 {
-   volatile uint8_t junk;
-   
    I2C1->DR = data;
-   
-   //junk = I2C1->SR1;
-   //junk = I2C1->SR2;
    
    while ((I2C1->SR1 & I2C_SR1_TXE) == 0)
       ;
-      
-   //junk = I2C1->SR2;
 }
 
 
 /* oledData --- send a data byte to the OLED by I2C */
 
-inline void oledData(const uint8_t d)
+static void oledData(const uint8_t d)
 {
     i2c1_txd(d);
 }
@@ -254,7 +250,7 @@ inline void oledData(const uint8_t d)
 
 /* oledCmd --- send a command byte to the OLED by I2C */
 
-inline void oledCmd(const uint8_t c)
+static void oledCmd(const uint8_t c)
 {
    i2c1_start();
    i2c1_txa(0x78);
@@ -266,7 +262,7 @@ inline void oledCmd(const uint8_t c)
 
 /* oledCmd1b --- send two command bytes to the OLED by I2C */
 
-inline void oledCmd1b(const uint8_t c, const uint8_t b)
+static void oledCmd1b(const uint8_t c, const uint8_t b)
 {
    i2c1_start();
    i2c1_txa(0x78);
@@ -424,11 +420,8 @@ void clrVline(const unsigned int x, const unsigned int y1, const unsigned int y2
 void setHline(const unsigned int x1, const unsigned int x2, const unsigned int y)
 {
     unsigned int x;
-    unsigned int row;
-    unsigned char b;
-
-    row = y / 8;
-    b = 1 << (y  & 7);
+    const unsigned int row = y / 8;
+    const uint8_t b = 1 << (y  & 7);
 
     for (x = x1; x <= x2; x++)
         Frame[row][x] |= b;
@@ -440,11 +433,8 @@ void setHline(const unsigned int x1, const unsigned int x2, const unsigned int y
 void clrHline(const unsigned int x1, const unsigned int x2, const unsigned int y)
 {
     unsigned int x;
-    unsigned int row;
-    unsigned char b;
-
-    row = y / 8;
-    b = ~(1 << (y  & 7));
+    const unsigned int row = y / 8;
+    const uint8_t b = ~(1 << (y  & 7));
 
     for (x = x1; x <= x2; x++)
       Frame[row][x] &= b;
@@ -488,6 +478,78 @@ void fillRect(const int x1, const int y1, const int x2, const int y2, const int 
         clrHline(x1, x2, y2);
         clrVline(x1, y1, y2);
     }
+}
+
+
+void drawSegA(const int x)
+{
+   setHline(x + 1, x + 17, 0);
+   setHline(x + 2, x + 16, 1);
+   setHline(x + 3, x + 15, 2);
+}
+
+
+void drawSegB(const int x)
+{
+   setVline(x + 18, 1, 13);
+   setVline(x + 17, 2, 14);
+   setVline(x + 16, 3, 13);
+}
+
+
+void drawSegC(const int x)
+{
+   setVline(x + 18, 19, 30);
+   setVline(x + 17, 18, 29);
+   setVline(x + 16, 19, 28);
+}
+
+
+void drawSegD(const int x)
+{
+   setHline(x + 1, x + 17, 31);
+   setHline(x + 2, x + 16, 30);
+   setHline(x + 3, x + 15, 29);
+}
+
+
+void drawSegE(const int x)
+{
+   setVline(x + 0, 17, 30);
+   setVline(x + 1, 18, 29);
+   setVline(x + 2, 19, 28);
+}
+
+
+void drawSegF(const int x)
+{
+   setVline(x + 0, 1, 15);
+   setVline(x + 1, 2, 14);
+   setVline(x + 2, 3, 13);
+}
+
+
+void drawSegG(const int x)
+{
+   setHline(x + 2, x + 16, 15);
+   setHline(x + 1, x + 17, 16);
+   setHline(x + 2, x + 16, 17);
+}
+
+
+void drawSegH(const int x)
+{
+   setHline(x + 18, x + 21, 15);
+   setHline(x + 17, x + 21, 16);
+   setHline(x + 18, x + 21, 17);
+}
+
+
+void drawSegDP(const int x)
+{
+   setHline(x + 20, x + 22, 29);
+   setHline(x + 20, x + 22, 30);
+   setHline(x + 20, x + 22, 31);
 }
 
 
@@ -646,6 +708,8 @@ int main(void)
 {
    uint32_t end;
    uint8_t flag = 0;
+   int digit = 0;
+   int x = digit * 24;
    
    initMCU();
    initGPIOs();
@@ -693,6 +757,87 @@ int main(void)
          case 'r':
          case 'R':
             setRect(0, 0, MAXX - 1, MAXY - 1);
+            updscreen();
+            break;
+         case 'q':
+         case 'Q':
+            setVline(MAXX / 4,       0, MAXY - 1);
+            setVline(MAXX / 2,       0, MAXY - 1);
+            setVline((MAXX * 3) / 4, 0, MAXY - 1);
+            updscreen();
+            break;
+         case 'i':
+         case 'I':
+            memcpy(Frame, OLEDImage, sizeof (Frame));
+            updscreen();
+            break;
+         case '0':
+            memset(Frame, 0, sizeof (Frame));
+            updscreen();
+            break;
+         case '1':
+            digit = 0;
+            x = digit * 24;
+            break;
+         case '2':
+            digit = 1;
+            x = digit * 24;
+            break;
+         case '3':
+            digit = 2;
+            x = digit * 24;
+            break;
+         case '4':
+            digit = 3;
+            x = digit * 24;
+            break;
+         case '5':
+            digit = 4;
+            x = digit * 24;
+            break;
+         case 'a':
+         case 'A':
+            drawSegA(x);
+            updscreen();
+            break;
+         case 'b':
+         case 'B':
+            drawSegB(x);
+            updscreen();
+            break;
+         case 'c':
+         case 'C':
+            drawSegC(x);
+            updscreen();
+            break;
+         case 'd':
+         case 'D':
+            drawSegD(x);
+            updscreen();
+            break;
+         case 'e':
+         case 'E':
+            drawSegE(x);
+            updscreen();
+            break;
+         case 'f':
+         case 'F':
+            drawSegF(x);
+            updscreen();
+            break;
+         case 'g':
+         case 'G':
+            drawSegG(x);
+            updscreen();
+            break;
+         case 'h':
+         case 'H':
+            drawSegH(x);
+            updscreen();
+            break;
+         case 'p':
+         case 'P':
+            drawSegDP(x);
             updscreen();
             break;
          }

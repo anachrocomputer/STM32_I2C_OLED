@@ -55,7 +55,7 @@ i2c_oled.elf: i2c_oled.o startup_stm32f103xb.o system_stm32f1xx.o
 	$(LD) -mcpu=$(MCU) $(LDFLAGS) startup_stm32f103xb.o system_stm32f1xx.o i2c_oled.o
 	$(SZ) $(SZFLAGS) i2c_oled.elf
 	
-i2c_oled.o: i2c_oled.c
+i2c_oled.o: i2c_oled.c image.h
 	$(CC) -mcpu=$(MCU) $(CFLAGS) i2c_oled.c
 
 system_stm32f1xx.o: $(SYSTEM)
@@ -63,6 +63,12 @@ system_stm32f1xx.o: $(SYSTEM)
 
 startup_stm32f103xb.o: $(STARTUP)
 	$(CC) -mcpu=$(MCU) $(CFLAGS) $(STARTUP)
+
+image.h: image.pbm pbm2oled
+	./pbm2oled image.pbm >image.h
+
+pbm2oled: pbm2oled.c
+	gcc -o pbm2oled pbm2oled.c
 
 # Target to invoke the programmer and program the flash memory of the MCU
 prog: i2c_oled.bin
@@ -79,7 +85,7 @@ teststlink:
 
 # Target 'clean' will delete all object files, ELF files, and BIN files
 clean:
-	-rm -f $(OBJS) $(ELFS) $(BINS) startup_stm32f103xb.o system_stm32f1xx.o
+	-rm -f $(OBJS) $(ELFS) $(BINS) startup_stm32f103xb.o system_stm32f1xx.o pbm2oled
 
 .PHONY: clean
 
