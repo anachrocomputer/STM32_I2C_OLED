@@ -84,6 +84,12 @@ struct UART_BUFFER
     struct UART_RX_BUFFER rx;
 };
 
+// What style digits would we prefer?
+enum STYLE {
+   PANAPLEX_STYLE,
+   VFD_STYLE
+};
+
 // UART buffers
 struct UART_BUFFER U1Buf;
 
@@ -481,72 +487,137 @@ void fillRect(const int x1, const int y1, const int x2, const int y2, const int 
 }
 
 #define  WD  (15)    // Width of digit (X-coord of rightmost pixel of segments 'b' and 'c')
+#define  GY  (13)    // Y-coord of 'g' segment of Panaplex (slightly above half-way)
 
-void drawSegA(const int x)
+void drawSegA(const int x, const int style)
 {
-   setHline(x + 1, x + WD - 1, 0);
-   setHline(x + 2, x + WD - 2, 1);
-   setHline(x + 3, x + WD - 3, 2);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setHline(x, x + WD, 0);
+      setHline(x, x + WD, 1);
+      break;
+   case VFD_STYLE:
+      setHline(x + 1, x + WD - 1, 0);
+      setHline(x + 2, x + WD - 2, 1);
+      setHline(x + 3, x + WD - 3, 2);
+      break;
+   }
 }
 
 
-void drawSegB(const int x)
+void drawSegB(const int x, const int style)
 {
-   setVline(x + WD,     1, 13);
-   setVline(x + WD - 1, 2, 14);
-   setVline(x + WD - 2, 3, 13);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setVline(x + WD,     0, GY);
+      setVline(x + WD - 1, 0, GY);
+      break;
+   case VFD_STYLE:
+      setVline(x + WD,     1, 13);
+      setVline(x + WD - 1, 2, 14);
+      setVline(x + WD - 2, 3, 13);
+      break;
+   }
 }
 
 
-void drawSegC(const int x)
+void drawSegC(const int x, const int style)
 {
-   setVline(x + WD,     19, 30);
-   setVline(x + WD - 1, 18, 29);
-   setVline(x + WD - 2, 19, 28);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setVline(x + WD,     GY, 31);
+      setVline(x + WD - 1, GY, 31);
+      break;
+   case VFD_STYLE:
+      setVline(x + WD,     19, 30);
+      setVline(x + WD - 1, 18, 29);
+      setVline(x + WD - 2, 19, 28);
+      break;
+   }
 }
 
 
-void drawSegD(const int x)
+void drawSegD(const int x, const int style)
 {
-   setHline(x + 1, x + WD - 1, 31);
-   setHline(x + 2, x + WD - 2, 30);
-   setHline(x + 3, x + WD - 3, 29);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setHline(x, x + WD, 31);
+      setHline(x, x + WD, 30);
+      break;
+   case VFD_STYLE:
+      setHline(x + 1, x + WD - 1, 31);
+      setHline(x + 2, x + WD - 2, 30);
+      setHline(x + 3, x + WD - 3, 29);
+      break;
+   }
 }
 
 
-void drawSegE(const int x)
+void drawSegE(const int x, const int style)
 {
-   setVline(x + 0, 17, 30);
-   setVline(x + 1, 18, 29);
-   setVline(x + 2, 19, 28);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setVline(x + 0, GY, 31);
+      setVline(x + 1, GY, 31);
+      break;
+   case VFD_STYLE:
+      setVline(x + 0, 17, 30);
+      setVline(x + 1, 18, 29);
+      setVline(x + 2, 19, 28);
+      break;
+   }
 }
 
 
-void drawSegF(const int x)
+void drawSegF(const int x, const int style)
 {
-   setVline(x + 0, 1, 15);
-   setVline(x + 1, 2, 14);
-   setVline(x + 2, 3, 13);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setVline(x + 0, 0, GY);
+      setVline(x + 1, 0, GY);
+      break;
+   case VFD_STYLE:
+      setVline(x + 0, 1, 15);
+      setVline(x + 1, 2, 14);
+      setVline(x + 2, 3, 13);
+      break;
+   }
 }
 
 
-void drawSegG(const int x)
+void drawSegG(const int x, const int style)
 {
-   setHline(x + 2, x + WD - 2, 15);
-   setHline(x + 1, x + WD - 1, 16);
-   setHline(x + 2, x + WD - 2, 17);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setHline(x, x + WD, GY);
+      setHline(x, x + WD, GY + 1);
+      break;
+   case VFD_STYLE:
+      setHline(x + 2, x + WD - 2, 15);
+      setHline(x + 1, x + WD - 1, 16);
+      setHline(x + 2, x + WD - 2, 17);
+      break;
+   }
 }
 
 
-void drawSegH(const int x)
+void drawSegH(const int x, const int style)
 {
-   setHline(x + WD,     x + WD + 3, 15);
-   setHline(x + WD - 1, x + WD + 3, 16);
-   setHline(x + WD,     x + WD + 3, 17);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setHline(x + WD, x + WD + 3, GY);
+      setHline(x + WD, x + WD + 3, GY + 1);
+      break;
+   case VFD_STYLE:
+      setHline(x + WD,     x + WD + 3, 15);
+      setHline(x + WD - 1, x + WD + 3, 16);
+      setHline(x + WD,     x + WD + 3, 17);
+      break;
+   }
 }
 
 
-void drawSegDP(const int x)
+void drawSegDP(const int x, const int style)
 {
    setHline(x + WD + 2, x + WD + 4, 29);
    setHline(x + WD + 2, x + WD + 4, 30);
@@ -712,6 +783,7 @@ int main(void)
    const int width = WD + 6;
    int digit = 0;
    int x = digit * width;
+   int style = VFD_STYLE;
    
    initMCU();
    initGPIOs();
@@ -803,48 +875,56 @@ int main(void)
             break;
          case 'a':
          case 'A':
-            drawSegA(x);
+            drawSegA(x, style);
             updscreen();
             break;
          case 'b':
          case 'B':
-            drawSegB(x);
+            drawSegB(x, style);
             updscreen();
             break;
          case 'c':
          case 'C':
-            drawSegC(x);
+            drawSegC(x, style);
             updscreen();
             break;
          case 'd':
          case 'D':
-            drawSegD(x);
+            drawSegD(x, style);
             updscreen();
             break;
          case 'e':
          case 'E':
-            drawSegE(x);
+            drawSegE(x, style);
             updscreen();
             break;
          case 'f':
          case 'F':
-            drawSegF(x);
+            drawSegF(x, style);
             updscreen();
             break;
          case 'g':
          case 'G':
-            drawSegG(x);
+            drawSegG(x, style);
             updscreen();
             break;
          case 'h':
          case 'H':
-            drawSegH(x);
+            drawSegH(x, style);
             updscreen();
             break;
          case 'p':
          case 'P':
-            drawSegDP(x);
+            drawSegDP(x, style);
             updscreen();
+            break;
+         case 'v':
+         case 'V':
+            style = VFD_STYLE;
+            break;
+         case 'x':
+         case 'X':
+            style = PANAPLEX_STYLE;
             break;
          }
       }
