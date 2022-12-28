@@ -480,36 +480,37 @@ void fillRect(const int x1, const int y1, const int x2, const int y2, const int 
     }
 }
 
+#define  WD  (15)    // Width of digit (X-coord of rightmost pixel of segments 'b' and 'c')
 
 void drawSegA(const int x)
 {
-   setHline(x + 1, x + 17, 0);
-   setHline(x + 2, x + 16, 1);
-   setHline(x + 3, x + 15, 2);
+   setHline(x + 1, x + WD - 1, 0);
+   setHline(x + 2, x + WD - 2, 1);
+   setHline(x + 3, x + WD - 3, 2);
 }
 
 
 void drawSegB(const int x)
 {
-   setVline(x + 18, 1, 13);
-   setVline(x + 17, 2, 14);
-   setVline(x + 16, 3, 13);
+   setVline(x + WD,     1, 13);
+   setVline(x + WD - 1, 2, 14);
+   setVline(x + WD - 2, 3, 13);
 }
 
 
 void drawSegC(const int x)
 {
-   setVline(x + 18, 19, 30);
-   setVline(x + 17, 18, 29);
-   setVline(x + 16, 19, 28);
+   setVline(x + WD,     19, 30);
+   setVline(x + WD - 1, 18, 29);
+   setVline(x + WD - 2, 19, 28);
 }
 
 
 void drawSegD(const int x)
 {
-   setHline(x + 1, x + 17, 31);
-   setHline(x + 2, x + 16, 30);
-   setHline(x + 3, x + 15, 29);
+   setHline(x + 1, x + WD - 1, 31);
+   setHline(x + 2, x + WD - 2, 30);
+   setHline(x + 3, x + WD - 3, 29);
 }
 
 
@@ -531,25 +532,25 @@ void drawSegF(const int x)
 
 void drawSegG(const int x)
 {
-   setHline(x + 2, x + 16, 15);
-   setHline(x + 1, x + 17, 16);
-   setHline(x + 2, x + 16, 17);
+   setHline(x + 2, x + WD - 2, 15);
+   setHline(x + 1, x + WD - 1, 16);
+   setHline(x + 2, x + WD - 2, 17);
 }
 
 
 void drawSegH(const int x)
 {
-   setHline(x + 18, x + 21, 15);
-   setHline(x + 17, x + 21, 16);
-   setHline(x + 18, x + 21, 17);
+   setHline(x + WD,     x + WD + 3, 15);
+   setHline(x + WD - 1, x + WD + 3, 16);
+   setHline(x + WD,     x + WD + 3, 17);
 }
 
 
 void drawSegDP(const int x)
 {
-   setHline(x + 20, x + 22, 29);
-   setHline(x + 20, x + 22, 30);
-   setHline(x + 20, x + 22, 31);
+   setHline(x + WD + 2, x + WD + 4, 29);
+   setHline(x + WD + 2, x + WD + 4, 30);
+   setHline(x + WD + 2, x + WD + 4, 31);
 }
 
 
@@ -708,8 +709,9 @@ int main(void)
 {
    uint32_t end;
    uint8_t flag = 0;
+   const int width = WD + 6;
    int digit = 0;
-   int x = digit * 24;
+   int x = digit * width;
    
    initMCU();
    initGPIOs();
@@ -777,23 +779,27 @@ int main(void)
             break;
          case '1':
             digit = 0;
-            x = digit * 24;
+            x = digit * width;
             break;
          case '2':
             digit = 1;
-            x = digit * 24;
+            x = digit * width;
             break;
          case '3':
             digit = 2;
-            x = digit * 24;
+            x = digit * width;
             break;
          case '4':
             digit = 3;
-            x = digit * 24;
+            x = digit * width;
             break;
          case '5':
             digit = 4;
-            x = digit * 24;
+            x = digit * width;
+            break;
+         case '6':
+            digit = 5;
+            x = digit * width;
             break;
          case 'a':
          case 'A':
