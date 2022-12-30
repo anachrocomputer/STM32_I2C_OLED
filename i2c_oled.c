@@ -87,6 +87,7 @@ struct UART_BUFFER
 // What style digits would we prefer?
 enum STYLE {
    PANAPLEX_STYLE,
+   LED_STYLE,
    VFD_STYLE
 };
 
@@ -489,12 +490,30 @@ void fillRect(const int x1, const int y1, const int x2, const int y2, const int 
 #define  WD  (15)    // Width of digit (X-coord of rightmost pixel of segments 'b' and 'c')
 #define  GY  (13)    // Y-coord of 'g' segment of Panaplex (slightly above half-way)
 
+void drawLed(const int x0, int x, int y)
+{
+   x *= 4;
+   y *= 4;
+   
+   x += x0;
+   y += 3;
+   
+   setHline(x, x + 2, y + 0);
+   setHline(x, x + 2, y + 1);
+   setHline(x, x + 2, y + 2);
+}
+
+
 void drawSegA(const int x, const int style)
 {
    switch (style) {
    case PANAPLEX_STYLE:
       setHline(x, x + WD, 0);
       setHline(x, x + WD, 1);
+      break;
+   case LED_STYLE:
+      drawLed(x, 1, 0);
+      drawLed(x, 2, 0);
       break;
    case VFD_STYLE:
       setHline(x + 1, x + WD - 1, 0);
@@ -512,6 +531,10 @@ void drawSegB(const int x, const int style)
       setVline(x + WD,     0, GY);
       setVline(x + WD - 1, 0, GY);
       break;
+   case LED_STYLE:
+      drawLed(x, 3, 1);
+      drawLed(x, 3, 2);
+      break;
    case VFD_STYLE:
       setVline(x + WD,     1, 13);
       setVline(x + WD - 1, 2, 14);
@@ -527,6 +550,10 @@ void drawSegC(const int x, const int style)
    case PANAPLEX_STYLE:
       setVline(x + WD,     GY, 31);
       setVline(x + WD - 1, GY, 31);
+      break;
+   case LED_STYLE:
+      drawLed(x, 3, 4);
+      drawLed(x, 3, 5);
       break;
    case VFD_STYLE:
       setVline(x + WD,     19, 30);
@@ -544,6 +571,10 @@ void drawSegD(const int x, const int style)
       setHline(x, x + WD, 31);
       setHline(x, x + WD, 30);
       break;
+   case LED_STYLE:
+      drawLed(x, 1, 6);
+      drawLed(x, 2, 6);
+      break;
    case VFD_STYLE:
       setHline(x + 1, x + WD - 1, 31);
       setHline(x + 2, x + WD - 2, 30);
@@ -559,6 +590,10 @@ void drawSegE(const int x, const int style)
    case PANAPLEX_STYLE:
       setVline(x + 0, GY, 31);
       setVline(x + 1, GY, 31);
+      break;
+   case LED_STYLE:
+      drawLed(x, 0, 4);
+      drawLed(x, 0, 5);
       break;
    case VFD_STYLE:
       setVline(x + 0, 17, 30);
@@ -576,6 +611,10 @@ void drawSegF(const int x, const int style)
       setVline(x + 0, 0, GY);
       setVline(x + 1, 0, GY);
       break;
+   case LED_STYLE:
+      drawLed(x, 0, 1);
+      drawLed(x, 0, 2);
+      break;
    case VFD_STYLE:
       setVline(x + 0, 1, 15);
       setVline(x + 1, 2, 14);
@@ -591,6 +630,10 @@ void drawSegG(const int x, const int style)
    case PANAPLEX_STYLE:
       setHline(x, x + WD, GY);
       setHline(x, x + WD, GY + 1);
+      break;
+   case LED_STYLE:
+      drawLed(x, 1, 3);
+      drawLed(x, 2, 3);
       break;
    case VFD_STYLE:
       setHline(x + 2, x + WD - 2, 15);
@@ -608,6 +651,9 @@ void drawSegH(const int x, const int style)
       setHline(x + WD, x + WD + 3, GY);
       setHline(x + WD, x + WD + 3, GY + 1);
       break;
+   case LED_STYLE:
+      drawLed(x, 4, 3);
+      break;
    case VFD_STYLE:
       setHline(x + WD,     x + WD + 3, 15);
       setHline(x + WD - 1, x + WD + 3, 16);
@@ -617,11 +663,264 @@ void drawSegH(const int x, const int style)
 }
 
 
+void drawSegI(const int x, const int style)
+{
+   switch (style) {
+   case LED_STYLE:
+      drawLed(x, 0, 0);
+      break;
+   }
+}
+
+
+void drawSegJ(const int x, const int style)
+{
+   switch (style) {
+   case LED_STYLE:
+      drawLed(x, 3, 0);
+      break;
+   }
+}
+
+
+void drawSegK(const int x, const int style)
+{
+   switch (style) {
+   case LED_STYLE:
+      drawLed(x, 3, 3);
+      break;
+   }
+}
+
+
+void drawSegL(const int x, const int style)
+{
+   switch (style) {
+   case LED_STYLE:
+      drawLed(x, 3, 6);
+      break;
+   }
+}
+
+
+void drawSegM(const int x, const int style)
+{
+   switch (style) {
+   case LED_STYLE:
+      drawLed(x, 0, 6);
+      break;
+   }
+}
+
+
+void drawSegN(const int x, const int style)
+{
+   switch (style) {
+   case LED_STYLE:
+      drawLed(x, 0, 3);
+      break;
+   }
+}
+
+
 void drawSegDP(const int x, const int style)
 {
-   setHline(x + WD + 2, x + WD + 4, 29);
-   setHline(x + WD + 2, x + WD + 4, 30);
-   setHline(x + WD + 2, x + WD + 4, 31);
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setHline(x + WD + 2, x + WD + 4, 29);
+      setHline(x + WD + 2, x + WD + 4, 30);
+      setHline(x + WD + 2, x + WD + 4, 31);
+   case LED_STYLE:
+      drawLed(x, 4, 6);
+      break;
+   case VFD_STYLE:
+      setHline(x + WD + 2, x + WD + 4, 29);
+      setHline(x + WD + 2, x + WD + 4, 30);
+      setHline(x + WD + 2, x + WD + 4, 31);
+      break;
+   }
+   
+}
+
+
+void renderHexDigit(const int x, const int digit, const int style)
+{
+   switch (digit) {
+   case 0:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegK(x, style);
+      drawSegN(x, style);
+      break;
+   case 1:
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegJ(x, style);
+      drawSegK(x, style);
+      drawSegL(x, style);
+      break;
+   case 2:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegG(x, style);
+      drawSegI(x, style);
+      drawSegL(x, style);
+      drawSegM(x, style);
+      break;
+   case 3:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegD(x, style);
+      drawSegG(x, style);
+      drawSegI(x, style);
+      drawSegM(x, style);
+      break;
+   case 4:
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegH(x, style);  // Special segment just for 4
+      drawSegI(x, style);
+      drawSegJ(x, style);
+      drawSegK(x, style);
+      drawSegL(x, style);
+      break;
+   case 5:
+      drawSegA(x, style);
+      drawSegC(x, style);
+      drawSegD(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegI(x, style);
+      drawSegJ(x, style);
+      drawSegM(x, style);
+      break;
+   case 6:
+      drawSegA(x, style);
+      drawSegC(x, style);
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegJ(x, style);
+      drawSegN(x, style);
+      break;
+   case 7:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegF(x, style);  // Hooked 7
+      drawSegI(x, style);
+      drawSegJ(x, style);
+      drawSegK(x, style);
+      drawSegL(x, style);
+      break;
+   case 8:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      break;
+   case 9:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegD(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegK(x, style);
+      drawSegM(x, style);
+      break;
+   case 0xA:
+      drawSegA(x, style);
+      drawSegB(x, style);
+      drawSegC(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegK(x, style);
+      drawSegL(x, style);
+      drawSegM(x, style);
+      drawSegN(x, style);
+      break;
+   case 0xB:
+      drawSegC(x, style);     // Lowercase 'b'
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      if (style == LED_STYLE) {
+         drawSegA(x, style);  // Uppercase 'B'
+         drawSegB(x, style);
+         drawSegI(x, style);
+         drawSegM(x, style);
+         drawSegN(x, style);
+      }
+      break;
+   case 0xC:
+      drawSegA(x, style);
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegJ(x, style);
+      drawSegL(x, style);
+      drawSegN(x, style);
+      break;
+   case 0xD:
+      if (style == LED_STYLE) {
+         drawSegA(x, style);  // Uppercase 'D'
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegI(x, style);
+         drawSegK(x, style);
+         drawSegM(x, style);
+         drawSegN(x, style);
+      }
+      else {
+         drawSegB(x, style);  // Lowercase 'd'
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegG(x, style);
+      }
+      break;
+   case 0xE:
+      drawSegA(x, style);
+      drawSegD(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegI(x, style);
+      drawSegJ(x, style);
+      drawSegL(x, style);
+      drawSegM(x, style);
+      drawSegN(x, style);
+      break;
+   case 0xF:
+      drawSegA(x, style);
+      drawSegE(x, style);
+      drawSegF(x, style);
+      drawSegG(x, style);
+      drawSegI(x, style);
+      drawSegJ(x, style);
+      drawSegM(x, style);
+      drawSegN(x, style);
+      break;
+   }
 }
 
 
@@ -840,77 +1139,103 @@ int main(void)
             setVline((MAXX * 3) / 4, 0, MAXY - 1);
             updscreen();
             break;
-         case 'i':
-         case 'I':
-            memcpy(Frame, OLEDImage, sizeof (Frame));
-            updscreen();
-            break;
-         case '0':
-            memset(Frame, 0, sizeof (Frame));
-            updscreen();
-            break;
-         case '1':
+         case 'g':
             digit = 0;
             x = digit * width;
             break;
-         case '2':
+         case 'h':
             digit = 1;
             x = digit * width;
             break;
-         case '3':
+         case 'i':
             digit = 2;
             x = digit * width;
             break;
-         case '4':
+         case 'j':
             digit = 3;
             x = digit * width;
             break;
-         case '5':
+         case 'k':
             digit = 4;
             x = digit * width;
             break;
-         case '6':
+         case 'l':
             digit = 5;
             x = digit * width;
             break;
+         case '0':
+            renderHexDigit(x, 0, style);
+            updscreen();
+            break;
+         case '1':
+            renderHexDigit(x, 1, style);
+            updscreen();
+            break;
+         case '2':
+            renderHexDigit(x, 2, style);
+            updscreen();
+            break;
+         case '3':
+            renderHexDigit(x, 3, style);
+            updscreen();
+            break;
+         case '4':
+            renderHexDigit(x, 4, style);
+            updscreen();
+            break;
+         case '5':
+            renderHexDigit(x, 5, style);
+            updscreen();
+            break;
+         case '6':
+            renderHexDigit(x, 6, style);
+            updscreen();
+            break;
+         case '7':
+            renderHexDigit(x, 7, style);
+            updscreen();
+            break;
+         case '8':
+            renderHexDigit(x, 8, style);
+            updscreen();
+            break;
+         case '9':
+            renderHexDigit(x, 9, style);
+            updscreen();
+            break;
          case 'a':
          case 'A':
-            drawSegA(x, style);
+            renderHexDigit(x, 0xA, style);
             updscreen();
             break;
          case 'b':
          case 'B':
-            drawSegB(x, style);
+            renderHexDigit(x, 0xB, style);
             updscreen();
             break;
          case 'c':
          case 'C':
-            drawSegC(x, style);
+            renderHexDigit(x, 0xC, style);
             updscreen();
             break;
          case 'd':
          case 'D':
-            drawSegD(x, style);
+            renderHexDigit(x, 0xD, style);
             updscreen();
             break;
          case 'e':
          case 'E':
-            drawSegE(x, style);
+            renderHexDigit(x, 0xE, style);
             updscreen();
             break;
          case 'f':
          case 'F':
-            drawSegF(x, style);
+            renderHexDigit(x, 0xF, style);
             updscreen();
             break;
-         case 'g':
-         case 'G':
-            drawSegG(x, style);
-            updscreen();
-            break;
-         case 'h':
-         case 'H':
-            drawSegH(x, style);
+         case 'o':
+         case 'O':
+            memcpy(Frame, OLEDImage, sizeof (Frame));
             updscreen();
             break;
          case 'p':
@@ -922,9 +1247,18 @@ int main(void)
          case 'V':
             style = VFD_STYLE;
             break;
+         case 'w':
+         case 'W':
+            style = LED_STYLE;
+            break;
          case 'x':
          case 'X':
             style = PANAPLEX_STYLE;
+            break;
+         case 'z':
+         case 'Z':
+            memset(Frame, 0, sizeof (Frame));
+            updscreen();
             break;
          }
       }

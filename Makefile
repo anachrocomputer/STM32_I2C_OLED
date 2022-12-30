@@ -34,7 +34,7 @@ LDSCRIPT=$(CMSISDIR)/Device/ST/STM32F1xx/Source/Templates/gcc/linker/STM32F103XB
 STARTUP=$(CMSISDIR)/Device/ST/STM32F1xx/Source/Templates/gcc/startup_stm32f103xb.s
 SYSTEM=$(CMSISDIR)/Device/ST/STM32F1xx/Source/Templates/system_stm32f1xx.c
 
-CFLAGS=-mthumb -c -o $@ -O3 -D$(STM32MCU) -I$(CMSISDIR)/Device/ST/STM32F1xx/Include -I$(CMSISDIR)/Include
+CFLAGS=-mthumb -c -o $@ -Os -D$(STM32MCU) -I$(CMSISDIR)/Device/ST/STM32F1xx/Include -I$(CMSISDIR)/Include
 LDFLAGS=-mthumb --specs=nosys.specs -o $@ -T$(LDSCRIPT)
 OCFLAGS=-R .stack -O binary
 SZFLAGS=-B -d
