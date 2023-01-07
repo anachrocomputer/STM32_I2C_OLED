@@ -100,6 +100,10 @@ uint8_t Frame[MAXROWS][MAXX];
 uint32_t SavedRccCsr = 0u;
 volatile uint32_t Milliseconds = 0;
 volatile uint8_t Tick = 0;
+volatile uint8_t RtcTick = 0;
+volatile uint8_t Hour = 0;
+volatile uint8_t Minute = 0;
+volatile uint8_t Second = 0;
 
 
 /* USART1_IRQHandler --- ISR for USART1, used for Rx and Tx */
@@ -135,6 +139,33 @@ void USART1_IRQHandler(void)
          USART1->CR1 &= ~USART_CR1_TXEIE; // Nothing left to send; disable Tx Empty interrupt
       }
    }
+}
+
+
+/* TIM4_IRQHandler --- ISR for TIM4, used for one-second real-time clock */
+
+void TIM4_IRQHandler(void)
+{
+   TIM4->SR &= ~TIM_SR_UIF;   // Clear timer interrupt flag
+   
+   if (Second >= 59) {
+      if (Minute >= 59) {
+         if (Hour >= 23)
+            Hour = 0;
+         else
+            Hour++;
+            
+         Minute = 0;
+      }
+      else
+         Minute++;
+      
+      Second = 0;
+   }
+   else
+      Second++;
+   
+   RtcTick = 1;
 }
 
 
@@ -730,6 +761,7 @@ void drawSegDP(const int x, const int style)
       setHline(x + WD + 2, x + WD + 4, 29);
       setHline(x + WD + 2, x + WD + 4, 30);
       setHline(x + WD + 2, x + WD + 4, 31);
+      break;
    case LED_STYLE:
       drawLed(x, 4, 6);
       break;
@@ -739,7 +771,31 @@ void drawSegDP(const int x, const int style)
       setHline(x + WD + 2, x + WD + 4, 31);
       break;
    }
-   
+}
+
+
+void drawSegCN(const int x, const int style)
+{
+   switch (style) {
+   case PANAPLEX_STYLE:
+      setHline(x + WD + 2, x + WD + 3,  9);
+      setHline(x + WD + 2, x + WD + 3, 10);
+      setHline(x + WD + 2, x + WD + 3, 17);
+      setHline(x + WD + 2, x + WD + 3, 18);
+      break;
+   case LED_STYLE:
+      drawLed(x, 4, 2);
+      drawLed(x, 4, 4);
+      break;
+   case VFD_STYLE:
+      setHline(x + WD + 2, x + WD + 4, 11);
+      setHline(x + WD + 2, x + WD + 4, 12);
+      setHline(x + WD + 2, x + WD + 4, 13);
+      setHline(x + WD + 2, x + WD + 4, 19);
+      setHline(x + WD + 2, x + WD + 4, 20);
+      setHline(x + WD + 2, x + WD + 4, 21);
+      break;
+   }
 }
 
 
@@ -1037,6 +1093,30 @@ static void initUARTs(void)
 }
 
 
+/* initTimers --- set up timer for regular 1Hz interrupts */
+
+static void initTimers(void)
+{
+   // The STM32F103 does not have Basic Timers 6 and 7. So, we'll use TIM4 to
+   // generate regular interrupts. TIM4 has a 16-bit prescaler and a 16-bit counter register
+   
+   RCC->APB1ENR |= RCC_APB1ENR_TIM4EN;        // Enable Timer 4 clock
+   
+   TIM4->CR1 = 0;               // Start with default CR1 and CR2
+   TIM4->CR2 = 0;
+   TIM4->CCMR1 = 0;             // No output compare mode PWM
+   TIM4->CCMR2 = 0;
+   TIM4->CCER = 0;              // No PWM outputs enabled
+   TIM4->PSC = 7200 - 1;        // Prescaler: 72MHz, divide-by-7200 to give 10kHz
+   TIM4->ARR = 10000 - 1;       // Auto-reload: 10000 to give interrupts at 1Hz
+   TIM4->CNT = 0;               // Counter: 0
+   TIM4->DIER |= TIM_DIER_UIE;  // Enable interrupt
+   TIM4->CR1 |= TIM_CR1_CEN;    // Enable counter
+   
+   NVIC_EnableIRQ(TIM4_IRQn);
+}
+
+
 /* initI2C --- set up the I2C interface */
 
 static void initI2C(void)
@@ -1088,6 +1168,7 @@ int main(void)
    initGPIOs();
    initUARTs();
    initI2C();
+   initTimers();
    initMillisecondTimer();
    
    __enable_irq();   // Enable all interrupts
@@ -1120,6 +1201,12 @@ int main(void)
          }
          
          Tick = 0;
+      }
+      
+      if (RtcTick) {
+         printf("RTC: %02d:%02d:%02d\n", Hour, Minute, Second);
+         
+         RtcTick = 0;
       }
       
       if (UART1RxAvailable()) {
@@ -1241,6 +1328,20 @@ int main(void)
          case 'p':
          case 'P':
             drawSegDP(x, style);
+            updscreen();
+            break;
+         case 't':
+            memset(Frame, 0, sizeof (Frame));
+            
+            renderHexDigit(0 * width, Hour / 10, style);
+            renderHexDigit(1 * width, Hour % 10, style);
+            drawSegCN(1 * width, style);
+            renderHexDigit(2 * width, Minute / 10, style);
+            renderHexDigit(3 * width, Minute % 10, style);
+            drawSegCN(3 * width, style);
+            renderHexDigit(4 * width, Second / 10, style);
+            renderHexDigit(5 * width, Second % 10, style);
+            
             updscreen();
             break;
          case 'v':
