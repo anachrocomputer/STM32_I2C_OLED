@@ -91,6 +91,13 @@ enum STYLE {
    VFD_STYLE
 };
 
+// What mode should the display operate in?
+enum MODE {
+   MANUAL_MODE,
+   AUTO_HMS_MODE,
+   AUTO_HEX_MODE
+};
+
 // UART buffers
 struct UART_BUFFER U1Buf;
 
@@ -799,6 +806,8 @@ void drawSegCN(const int x, const int style)
 }
 
 
+/* renderHexDigit --- draw a single digit into the frame buffer in a given style */
+
 void renderHexDigit(const int x, const int digit, const int style)
 {
    switch (digit) {
@@ -980,6 +989,21 @@ void renderHexDigit(const int x, const int digit, const int style)
 }
 
 
+/* renderClockDisplay --- draw the six clock digits into the frame buffer */
+
+void renderClockDisplay(const int width, const int style)
+{
+   renderHexDigit(0 * width, Hour / 10, style);
+   renderHexDigit(1 * width, Hour % 10, style);
+   
+   renderHexDigit(2 * width, Minute / 10, style);
+   renderHexDigit(3 * width, Minute % 10, style);
+   
+   renderHexDigit(4 * width, Second / 10, style);
+   renderHexDigit(5 * width, Second % 10, style);
+}
+
+
 /* _write --- connect stdio functions to UART1 */
 
 int _write(const int fd, const char *ptr, const int len)
@@ -1158,11 +1182,13 @@ static void initMillisecondTimer(void)
 int main(void)
 {
    uint32_t end;
+   uint32_t colon;   // Time in milliSeconds at which to draw the colon separators
    uint8_t flag = 0;
    const int width = WD + 6;
    int digit = 0;
    int x = digit * width;
-   int style = VFD_STYLE;
+   int style = VFD_STYLE;           // Initially draw digits in Vacuum Fluorescent Display style
+   int displayMode = MANUAL_MODE;   // Initially operate the display manually
    
    initMCU();
    initGPIOs();
@@ -1182,6 +1208,7 @@ int main(void)
    printf("\nHello from the STM%dF%d\n", 32, 103);
    
    end = millis() + 500u;
+   colon = 0xffffffff;
    
    while (1) {
       if (Tick) {
@@ -1200,11 +1227,30 @@ int main(void)
             printf("millis() = %ld\n", millis());
          }
          
+         if ((displayMode == AUTO_HMS_MODE) && (millis() >= colon)) {
+            drawSegCN(1 * width, style);
+            drawSegCN(3 * width, style);
+            
+            updscreen();
+            
+            colon += 600u;
+         }
+         
          Tick = 0;
       }
       
       if (RtcTick) {
          printf("RTC: %02d:%02d:%02d\n", Hour, Minute, Second);
+         
+         if (displayMode == AUTO_HMS_MODE) {
+            memset(Frame, 0, sizeof (Frame));
+            
+            renderClockDisplay(width, style);
+            
+            updscreen();
+            
+            colon = millis() + 500u;
+         }
          
          RtcTick = 0;
       }
@@ -1333,16 +1379,21 @@ int main(void)
          case 't':
             memset(Frame, 0, sizeof (Frame));
             
-            renderHexDigit(0 * width, Hour / 10, style);
-            renderHexDigit(1 * width, Hour % 10, style);
+            renderClockDisplay(width, style);
             drawSegCN(1 * width, style);
-            renderHexDigit(2 * width, Minute / 10, style);
-            renderHexDigit(3 * width, Minute % 10, style);
             drawSegCN(3 * width, style);
-            renderHexDigit(4 * width, Second / 10, style);
-            renderHexDigit(5 * width, Second % 10, style);
             
             updscreen();
+            
+            colon = millis() + 1100u;
+            break;
+         case 'm':
+         case 'M':
+            displayMode = MANUAL_MODE;
+            break;
+         case 'u':
+         case 'U':
+            displayMode = AUTO_HMS_MODE;
             break;
          case 'v':
          case 'V':
