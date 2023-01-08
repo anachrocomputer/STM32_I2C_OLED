@@ -87,7 +87,8 @@ struct UART_BUFFER
 // What style digits would we prefer?
 enum STYLE {
    PANAPLEX_STYLE,
-   LED_STYLE,
+   LED_BAR_STYLE,
+   LED_DOT_STYLE,
    VFD_STYLE
 };
 
@@ -549,9 +550,14 @@ void drawSegA(const int x, const int style)
       setHline(x, x + WD, 0);
       setHline(x, x + WD, 1);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 1, 0);
       drawLed(x, 2, 0);
+      break;
+   case LED_BAR_STYLE:
+      setHline(x + 3, x + WD - 3, 0);
+      setHline(x + 3, x + WD - 3, 1);
+      setHline(x + 3, x + WD - 3, 2);
       break;
    case VFD_STYLE:
       setHline(x + 1, x + WD - 1, 0);
@@ -569,9 +575,14 @@ void drawSegB(const int x, const int style)
       setVline(x + WD,     0, GY);
       setVline(x + WD - 1, 0, GY);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 3, 1);
       drawLed(x, 3, 2);
+      break;
+   case LED_BAR_STYLE:
+      setVline(x + WD,     3, 14);
+      setVline(x + WD - 1, 3, 14);
+      setVline(x + WD - 2, 3, 14);
       break;
    case VFD_STYLE:
       setVline(x + WD,     1, 13);
@@ -589,9 +600,14 @@ void drawSegC(const int x, const int style)
       setVline(x + WD,     GY, 31);
       setVline(x + WD - 1, GY, 31);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 3, 4);
       drawLed(x, 3, 5);
+      break;
+   case LED_BAR_STYLE:
+      setVline(x + WD,     18, 28);
+      setVline(x + WD - 1, 18, 28);
+      setVline(x + WD - 2, 18, 28);
       break;
    case VFD_STYLE:
       setVline(x + WD,     19, 30);
@@ -609,9 +625,14 @@ void drawSegD(const int x, const int style)
       setHline(x, x + WD, 31);
       setHline(x, x + WD, 30);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 1, 6);
       drawLed(x, 2, 6);
+      break;
+   case LED_BAR_STYLE:
+      setHline(x + 3, x + WD - 3, 31);
+      setHline(x + 3, x + WD - 3, 30);
+      setHline(x + 3, x + WD - 3, 29);
       break;
    case VFD_STYLE:
       setHline(x + 1, x + WD - 1, 31);
@@ -629,9 +650,14 @@ void drawSegE(const int x, const int style)
       setVline(x + 0, GY, 31);
       setVline(x + 1, GY, 31);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 0, 4);
       drawLed(x, 0, 5);
+      break;
+   case LED_BAR_STYLE:
+      setVline(x + 0, 18, 28);
+      setVline(x + 1, 18, 28);
+      setVline(x + 2, 18, 28);
       break;
    case VFD_STYLE:
       setVline(x + 0, 17, 30);
@@ -649,9 +675,14 @@ void drawSegF(const int x, const int style)
       setVline(x + 0, 0, GY);
       setVline(x + 1, 0, GY);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 0, 1);
       drawLed(x, 0, 2);
+      break;
+   case LED_BAR_STYLE:
+      setVline(x + 0, 3, 14);
+      setVline(x + 1, 3, 14);
+      setVline(x + 2, 3, 14);
       break;
    case VFD_STYLE:
       setVline(x + 0, 1, 15);
@@ -669,9 +700,14 @@ void drawSegG(const int x, const int style)
       setHline(x, x + WD, GY);
       setHline(x, x + WD, GY + 1);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 1, 3);
       drawLed(x, 2, 3);
+      break;
+   case LED_BAR_STYLE:
+      setHline(x + 3, x + WD - 3, 15);
+      setHline(x + 3, x + WD - 3, 16);
+      setHline(x + 3, x + WD - 3, 17);
       break;
    case VFD_STYLE:
       setHline(x + 2, x + WD - 2, 15);
@@ -689,8 +725,13 @@ void drawSegH(const int x, const int style)
       setHline(x + WD, x + WD + 3, GY);
       setHline(x + WD, x + WD + 3, GY + 1);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 4, 3);
+      break;
+   case LED_BAR_STYLE:
+      setHline(x + WD + 1, x + WD + 3, 15);
+      setHline(x + WD + 1, x + WD + 3, 16);
+      setHline(x + WD + 1, x + WD + 3, 17);
       break;
    case VFD_STYLE:
       setHline(x + WD,     x + WD + 3, 15);
@@ -704,7 +745,7 @@ void drawSegH(const int x, const int style)
 void drawSegI(const int x, const int style)
 {
    switch (style) {
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 0, 0);
       break;
    }
@@ -714,7 +755,7 @@ void drawSegI(const int x, const int style)
 void drawSegJ(const int x, const int style)
 {
    switch (style) {
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 3, 0);
       break;
    }
@@ -724,7 +765,7 @@ void drawSegJ(const int x, const int style)
 void drawSegK(const int x, const int style)
 {
    switch (style) {
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 3, 3);
       break;
    }
@@ -734,7 +775,7 @@ void drawSegK(const int x, const int style)
 void drawSegL(const int x, const int style)
 {
    switch (style) {
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 3, 6);
       break;
    }
@@ -744,7 +785,7 @@ void drawSegL(const int x, const int style)
 void drawSegM(const int x, const int style)
 {
    switch (style) {
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 0, 6);
       break;
    }
@@ -754,7 +795,7 @@ void drawSegM(const int x, const int style)
 void drawSegN(const int x, const int style)
 {
    switch (style) {
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 0, 3);
       break;
    }
@@ -769,9 +810,10 @@ void drawSegDP(const int x, const int style)
       setHline(x + WD + 2, x + WD + 4, 30);
       setHline(x + WD + 2, x + WD + 4, 31);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 4, 6);
       break;
+   case LED_BAR_STYLE:
    case VFD_STYLE:
       setHline(x + WD + 2, x + WD + 4, 29);
       setHline(x + WD + 2, x + WD + 4, 30);
@@ -790,10 +832,11 @@ void drawSegCN(const int x, const int style)
       setHline(x + WD + 2, x + WD + 3, 17);
       setHline(x + WD + 2, x + WD + 3, 18);
       break;
-   case LED_STYLE:
+   case LED_DOT_STYLE:
       drawLed(x, 4, 2);
       drawLed(x, 4, 4);
       break;
+   case LED_BAR_STYLE:
    case VFD_STYLE:
       setHline(x + WD + 2, x + WD + 4, 11);
       setHline(x + WD + 2, x + WD + 4, 12);
@@ -925,7 +968,7 @@ void renderHexDigit(const int x, const int digit, const int style)
       drawSegE(x, style);
       drawSegF(x, style);
       drawSegG(x, style);
-      if (style == LED_STYLE) {
+      if (style == LED_DOT_STYLE) {
          drawSegA(x, style);  // Uppercase 'B'
          drawSegB(x, style);
          drawSegI(x, style);
@@ -943,7 +986,7 @@ void renderHexDigit(const int x, const int digit, const int style)
       drawSegN(x, style);
       break;
    case 0xD:
-      if (style == LED_STYLE) {
+      if (style == LED_DOT_STYLE) {
          drawSegA(x, style);  // Uppercase 'D'
          drawSegB(x, style);
          drawSegC(x, style);
@@ -1371,9 +1414,12 @@ int main(void)
             memcpy(Frame, OLEDImage, sizeof (Frame));
             updscreen();
             break;
-         case 'p':
-         case 'P':
+         case '.':
             drawSegDP(x, style);
+            updscreen();
+            break;
+         case ':':
+            drawSegCN(x, style);
             updscreen();
             break;
          case 't':
@@ -1401,11 +1447,15 @@ int main(void)
             break;
          case 'w':
          case 'W':
-            style = LED_STYLE;
+            style = LED_DOT_STYLE;
             break;
          case 'x':
          case 'X':
             style = PANAPLEX_STYLE;
+            break;
+         case 'y':
+         case 'Y':
+            style = LED_BAR_STYLE;
             break;
          case 'z':
          case 'Z':
