@@ -99,6 +99,17 @@ enum MODE {
    AUTO_HEX_MODE
 };
 
+// What state is the command parser operating in?
+enum STATE {
+   NOT_SETTING_TIME,
+   SETTING_TIME_1,
+   SETTING_TIME_2,
+   SETTING_TIME_3,
+   SETTING_TIME_4,
+   SETTING_TIME_5,
+   SETTING_TIME_6
+};
+
 // UART buffers
 struct UART_BUFFER U1Buf;
 
@@ -1232,6 +1243,8 @@ int main(void)
    int x = digit * width;
    int style = VFD_STYLE;           // Initially draw digits in Vacuum Fluorescent Display style
    int displayMode = MANUAL_MODE;   // Initially operate the display manually
+   int state = NOT_SETTING_TIME;
+   int hour, minute, second;
    
    initMCU();
    initGPIOs();
@@ -1302,165 +1315,225 @@ int main(void)
          const uint8_t ch = UART1RxByte();
          
          printf("UART1: %02x\n", ch);
-         switch (ch) {
-         case 'r':
-         case 'R':
-            setRect(0, 0, MAXX - 1, MAXY - 1);
-            updscreen();
+         switch (state) {
+         case SETTING_TIME_1:
+            if (isdigit(ch)) {
+               hour = (ch - '0') * 10;
+               state = SETTING_TIME_2;
+            }
+            else
+               state = NOT_SETTING_TIME;
             break;
-         case 'q':
-         case 'Q':
-            setVline(MAXX / 4,       0, MAXY - 1);
-            setVline(MAXX / 2,       0, MAXY - 1);
-            setVline((MAXX * 3) / 4, 0, MAXY - 1);
-            updscreen();
+         case SETTING_TIME_2:
+            if (isdigit(ch)) {
+               hour += ch - '0';
+               state = SETTING_TIME_3;
+            }
+            else
+               state = NOT_SETTING_TIME;
             break;
-         case 'g':
-            digit = 0;
-            x = digit * width;
+         case SETTING_TIME_3:
+            if (isdigit(ch)) {
+               minute = (ch - '0') * 10;
+               state = SETTING_TIME_4;
+            }
+            else
+               state = NOT_SETTING_TIME;
             break;
-         case 'h':
-            digit = 1;
-            x = digit * width;
+         case SETTING_TIME_4:
+            if (isdigit(ch)) {
+               minute += ch - '0';
+               state = SETTING_TIME_5;
+            }
+            else
+               state = NOT_SETTING_TIME;
             break;
-         case 'i':
-            digit = 2;
-            x = digit * width;
+         case SETTING_TIME_5:
+            if (isdigit(ch)) {
+               second = (ch - '0') * 10;
+               state = SETTING_TIME_6;
+            }
+            else
+               state = NOT_SETTING_TIME;
             break;
-         case 'j':
-            digit = 3;
-            x = digit * width;
+         case SETTING_TIME_6:
+            if (isdigit(ch)) {
+               second += ch - '0';
+               state = NOT_SETTING_TIME;
+               printf("NEW: %02d:%02d:%02d\n", hour, minute, second);
+               Hour = hour;
+               Minute = minute;
+               second = second;
+            }
+            else
+               state = NOT_SETTING_TIME;
             break;
-         case 'k':
-            digit = 4;
-            x = digit * width;
-            break;
-         case 'l':
-            digit = 5;
-            x = digit * width;
-            break;
-         case '0':
-            renderHexDigit(x, 0, style);
-            updscreen();
-            break;
-         case '1':
-            renderHexDigit(x, 1, style);
-            updscreen();
-            break;
-         case '2':
-            renderHexDigit(x, 2, style);
-            updscreen();
-            break;
-         case '3':
-            renderHexDigit(x, 3, style);
-            updscreen();
-            break;
-         case '4':
-            renderHexDigit(x, 4, style);
-            updscreen();
-            break;
-         case '5':
-            renderHexDigit(x, 5, style);
-            updscreen();
-            break;
-         case '6':
-            renderHexDigit(x, 6, style);
-            updscreen();
-            break;
-         case '7':
-            renderHexDigit(x, 7, style);
-            updscreen();
-            break;
-         case '8':
-            renderHexDigit(x, 8, style);
-            updscreen();
-            break;
-         case '9':
-            renderHexDigit(x, 9, style);
-            updscreen();
-            break;
-         case 'a':
-         case 'A':
-            renderHexDigit(x, 0xA, style);
-            updscreen();
-            break;
-         case 'b':
-         case 'B':
-            renderHexDigit(x, 0xB, style);
-            updscreen();
-            break;
-         case 'c':
-         case 'C':
-            renderHexDigit(x, 0xC, style);
-            updscreen();
-            break;
-         case 'd':
-         case 'D':
-            renderHexDigit(x, 0xD, style);
-            updscreen();
-            break;
-         case 'e':
-         case 'E':
-            renderHexDigit(x, 0xE, style);
-            updscreen();
-            break;
-         case 'f':
-         case 'F':
-            renderHexDigit(x, 0xF, style);
-            updscreen();
-            break;
-         case 'o':
-         case 'O':
-            memcpy(Frame, OLEDImage, sizeof (Frame));
-            updscreen();
-            break;
-         case '.':
-            drawSegDP(x, style);
-            updscreen();
-            break;
-         case ':':
-            drawSegCN(x, style);
-            updscreen();
-            break;
-         case 't':
-            memset(Frame, 0, sizeof (Frame));
-            
-            renderClockDisplay(width, style);
-            drawSegCN(1 * width, style);
-            drawSegCN(3 * width, style);
-            
-            updscreen();
-            
-            colon = millis() + 1100u;
-            break;
-         case 'm':
-         case 'M':
-            displayMode = MANUAL_MODE;
-            break;
-         case 'u':
-         case 'U':
-            displayMode = AUTO_HMS_MODE;
-            break;
-         case 'v':
-         case 'V':
-            style = VFD_STYLE;
-            break;
-         case 'w':
-         case 'W':
-            style = LED_DOT_STYLE;
-            break;
-         case 'x':
-         case 'X':
-            style = PANAPLEX_STYLE;
-            break;
-         case 'y':
-         case 'Y':
-            style = LED_BAR_STYLE;
-            break;
-         case 'z':
-         case 'Z':
-            memset(Frame, 0, sizeof (Frame));
-            updscreen();
+         case NOT_SETTING_TIME:
+            switch (ch) {
+            case 'r':
+            case 'R':
+               setRect(0, 0, MAXX - 1, MAXY - 1);
+               updscreen();
+               break;
+            case 'q':
+            case 'Q':
+               setVline(MAXX / 4,       0, MAXY - 1);
+               setVline(MAXX / 2,       0, MAXY - 1);
+               setVline((MAXX * 3) / 4, 0, MAXY - 1);
+               updscreen();
+               break;
+            case 'g':
+               digit = 0;
+               x = digit * width;
+               break;
+            case 'h':
+               digit = 1;
+               x = digit * width;
+               break;
+            case 'i':
+               digit = 2;
+               x = digit * width;
+               break;
+            case 'j':
+               digit = 3;
+               x = digit * width;
+               break;
+            case 'k':
+               digit = 4;
+               x = digit * width;
+               break;
+            case 'l':
+               digit = 5;
+               x = digit * width;
+               break;
+            case '0':
+               renderHexDigit(x, 0, style);
+               updscreen();
+               break;
+            case '1':
+               renderHexDigit(x, 1, style);
+               updscreen();
+               break;
+            case '2':
+               renderHexDigit(x, 2, style);
+               updscreen();
+               break;
+            case '3':
+               renderHexDigit(x, 3, style);
+               updscreen();
+               break;
+            case '4':
+               renderHexDigit(x, 4, style);
+               updscreen();
+               break;
+            case '5':
+               renderHexDigit(x, 5, style);
+               updscreen();
+               break;
+            case '6':
+               renderHexDigit(x, 6, style);
+               updscreen();
+               break;
+            case '7':
+               renderHexDigit(x, 7, style);
+               updscreen();
+               break;
+            case '8':
+               renderHexDigit(x, 8, style);
+               updscreen();
+               break;
+            case '9':
+               renderHexDigit(x, 9, style);
+               updscreen();
+               break;
+            case 'a':
+            case 'A':
+               renderHexDigit(x, 0xA, style);
+               updscreen();
+               break;
+            case 'b':
+            case 'B':
+               renderHexDigit(x, 0xB, style);
+               updscreen();
+               break;
+            case 'c':
+            case 'C':
+               renderHexDigit(x, 0xC, style);
+               updscreen();
+               break;
+            case 'd':
+            case 'D':
+               renderHexDigit(x, 0xD, style);
+               updscreen();
+               break;
+            case 'e':
+            case 'E':
+               renderHexDigit(x, 0xE, style);
+               updscreen();
+               break;
+            case 'f':
+            case 'F':
+               renderHexDigit(x, 0xF, style);
+               updscreen();
+               break;
+            case 'o':
+            case 'O':
+               memcpy(Frame, OLEDImage, sizeof (Frame));
+               updscreen();
+               break;
+            case '.':
+               drawSegDP(x, style);
+               updscreen();
+               break;
+            case ':':
+               drawSegCN(x, style);
+               updscreen();
+               break;
+            case 's':
+               state = SETTING_TIME_1;
+               printf("OLD: %02d:%02d:%02d\n", Hour, Minute, Second);
+               break;
+            case 't':
+               memset(Frame, 0, sizeof (Frame));
+               
+               renderClockDisplay(width, style);
+               drawSegCN(1 * width, style);
+               drawSegCN(3 * width, style);
+               
+               updscreen();
+               
+               colon = millis() + 1100u;
+               break;
+            case 'm':
+            case 'M':
+               displayMode = MANUAL_MODE;
+               break;
+            case 'u':
+            case 'U':
+               displayMode = AUTO_HMS_MODE;
+               break;
+            case 'v':
+            case 'V':
+               style = VFD_STYLE;
+               break;
+            case 'w':
+            case 'W':
+               style = LED_DOT_STYLE;
+               break;
+            case 'x':
+            case 'X':
+               style = PANAPLEX_STYLE;
+               break;
+            case 'y':
+            case 'Y':
+               style = LED_BAR_STYLE;
+               break;
+            case 'z':
+            case 'Z':
+               memset(Frame, 0, sizeof (Frame));
+               updscreen();
+               break;
+            }
             break;
          }
       }
