@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <ctype.h>
 
 // Size of 128x32 OLED screen
 #define MAXX 128
@@ -297,14 +298,6 @@ void i2c1_txd(const uint8_t data)
 }
 
 
-/* oledData --- send a data byte to the OLED by I2C */
-
-static void oledData(const uint8_t d)
-{
-    i2c1_txd(d);
-}
-
-
 /* oledCmd --- send a command byte to the OLED by I2C */
 
 static void oledCmd(const uint8_t c)
@@ -334,7 +327,6 @@ static void oledCmd1b(const uint8_t c, const uint8_t b)
 
 static void updscreen(void)
 {
-   static uint8_t addrCmd[] = {SSD1306_COLUMNADDR, 0, MAXX - 1, SSD1306_PAGEADDR, 4, 7};
    int r, c;
    
    i2c1_start();
@@ -1244,7 +1236,7 @@ int main(void)
    int style = VFD_STYLE;           // Initially draw digits in Vacuum Fluorescent Display style
    int displayMode = MANUAL_MODE;   // Initially operate the display manually
    int state = NOT_SETTING_TIME;
-   int hour, minute, second;
+   int hour = 0, minute = 0, second = 0;
    
    initMCU();
    initGPIOs();
@@ -1363,7 +1355,7 @@ int main(void)
                printf("NEW: %02d:%02d:%02d\n", hour, minute, second);
                Hour = hour;
                Minute = minute;
-               second = second;
+               Second = second;
             }
             else
                state = NOT_SETTING_TIME;
