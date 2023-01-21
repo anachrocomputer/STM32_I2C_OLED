@@ -2,6 +2,7 @@
 /* Copyright (c) 2015 John Honniball. All rights reserved.             */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 // Size of OLED screen
@@ -13,13 +14,18 @@
 // The frame buffer, 512 bytes
 unsigned char Frame[MAXROWS][MAXX];
 
-void writeOLED(const char name[]);
+void writeOLED(const char name[], const int rows, const int wd);
 int readPBM(const char name[]);
 
 int main(const int argc, const char *const argv[])
 {
+   if (argc < 3) {
+      fputs("Usage: pbm2oled <PBM_filename> <C_array_name>\n", stderr);
+      exit(EXIT_FAILURE);
+   }
+   
    if (readPBM(argv[1]))
-      writeOLED(argv[1]);
+      writeOLED(argv[2], MAXROWS, MAXX);
       
    return (0);
 }
@@ -27,11 +33,11 @@ int main(const int argc, const char *const argv[])
 
 /* writeOLED --- write the frame buffer into a C header file */
 
-void writeOLED(const char name[])
+void writeOLED(const char name[], const int rows, const int wd)
 {
    int x, y;
    
-   puts("const uint8_t OLEDImage[MAXROWS * MAXX] = {");
+   printf("const uint8_t %s[%d * %d] = {\n", name, rows, wd);
 
    for (y = 0; y < MAXROWS; y++) {
       for (x = 0; x < MAXX; x++) {
