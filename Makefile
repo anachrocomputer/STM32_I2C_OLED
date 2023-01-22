@@ -55,7 +55,7 @@ i2c_oled.elf: i2c_oled.o startup_stm32f103xb.o system_stm32f1xx.o
 	$(LD) -mcpu=$(MCU) $(LDFLAGS) startup_stm32f103xb.o system_stm32f1xx.o i2c_oled.o
 	$(SZ) $(SZFLAGS) i2c_oled.elf
 	
-i2c_oled.o: i2c_oled.c image.h
+i2c_oled.o: i2c_oled.c image.h petrol.h
 	$(CC) -mcpu=$(MCU) $(CFLAGS) i2c_oled.c
 
 system_stm32f1xx.o: $(SYSTEM)
@@ -66,6 +66,9 @@ startup_stm32f103xb.o: $(STARTUP)
 
 image.h: image.pbm pbm2oled
 	./pbm2oled image.pbm OLEDImage >image.h
+
+petrol.h: petrol.pbm pbm2oled
+	./pbm2oled petrol.pbm PetrolDigits >petrol.h
 
 pbm2oled: pbm2oled.c
 	gcc -o pbm2oled pbm2oled.c
