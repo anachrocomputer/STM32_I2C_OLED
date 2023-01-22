@@ -13,6 +13,9 @@
 #define MAXROWS 4
 
 #include "image.h"
+#include "petrol.h"
+
+#define DIGIT_WIDTH (21)
 
 // Co-ord of centre of screen
 #define CENX (MAXX / 2)
@@ -90,6 +93,7 @@ enum STYLE {
    PANAPLEX_STYLE,
    LED_BAR_STYLE,
    LED_DOT_STYLE,
+   PETROL_STATION_STYLE,
    VFD_STYLE
 };
 
@@ -275,7 +279,7 @@ void i2c1_stop(void)
 
 void i2c1_txa(const uint8_t addr)
 {
-   volatile uint8_t junk;
+   volatile uint8_t __attribute__((unused)) junk;
    
    I2C1->DR = addr;
    
@@ -817,6 +821,7 @@ void drawSegDP(const int x, const int style)
       drawLed(x, 4, 6);
       break;
    case LED_BAR_STYLE:
+   case PETROL_STATION_STYLE:
    case VFD_STYLE:
       setHline(x + WD + 2, x + WD + 4, 29);
       setHline(x + WD + 2, x + WD + 4, 30);
@@ -840,6 +845,7 @@ void drawSegCN(const int x, const int style)
       drawLed(x, 4, 4);
       break;
    case LED_BAR_STYLE:
+   case PETROL_STATION_STYLE:
    case VFD_STYLE:
       setHline(x + WD + 2, x + WD + 4, 11);
       setHline(x + WD + 2, x + WD + 4, 12);
@@ -856,181 +862,189 @@ void drawSegCN(const int x, const int style)
 
 void renderHexDigit(const int x, const int digit, const int style)
 {
-   switch (digit) {
-   case 0:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegK(x, style);
-      drawSegN(x, style);
-      break;
-   case 1:
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegJ(x, style);
-      drawSegK(x, style);
-      drawSegL(x, style);
-      break;
-   case 2:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegG(x, style);
-      drawSegI(x, style);
-      drawSegL(x, style);
-      drawSegM(x, style);
-      break;
-   case 3:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegD(x, style);
-      drawSegG(x, style);
-      drawSegI(x, style);
-      drawSegM(x, style);
-      break;
-   case 4:
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegH(x, style);  // Special segment just for 4
-      drawSegI(x, style);
-      drawSegJ(x, style);
-      drawSegK(x, style);
-      drawSegL(x, style);
-      break;
-   case 5:
-      drawSegA(x, style);
-      drawSegC(x, style);
-      drawSegD(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegI(x, style);
-      drawSegJ(x, style);
-      drawSegM(x, style);
-      break;
-   case 6:
-      drawSegA(x, style);
-      drawSegC(x, style);
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegJ(x, style);
-      drawSegN(x, style);
-      break;
-   case 7:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegF(x, style);  // Hooked 7
-      drawSegI(x, style);
-      drawSegJ(x, style);
-      drawSegK(x, style);
-      drawSegL(x, style);
-      break;
-   case 8:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      break;
-   case 9:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegD(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegK(x, style);
-      drawSegM(x, style);
-      break;
-   case 0xA:
-      drawSegA(x, style);
-      drawSegB(x, style);
-      drawSegC(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegK(x, style);
-      drawSegL(x, style);
-      drawSegM(x, style);
-      drawSegN(x, style);
-      break;
-   case 0xB:
-      drawSegC(x, style);     // Lowercase 'b'
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      if (style == LED_DOT_STYLE) {
-         drawSegA(x, style);  // Uppercase 'B'
-         drawSegB(x, style);
-         drawSegI(x, style);
-         drawSegM(x, style);
-         drawSegN(x, style);
-      }
-      break;
-   case 0xC:
-      drawSegA(x, style);
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegJ(x, style);
-      drawSegL(x, style);
-      drawSegN(x, style);
-      break;
-   case 0xD:
-      if (style == LED_DOT_STYLE) {
-         drawSegA(x, style);  // Uppercase 'D'
+   if (style == PETROL_STATION_STYLE) {
+      int i;
+      
+      for (i = 0; i < MAXROWS; i++)
+         memcpy(&Frame[i][x], &PetrolDigits[i][digit * DIGIT_WIDTH], DIGIT_WIDTH);
+   }
+   else {
+      switch (digit) {
+      case 0:
+         drawSegA(x, style);
          drawSegB(x, style);
          drawSegC(x, style);
          drawSegD(x, style);
          drawSegE(x, style);
          drawSegF(x, style);
-         drawSegI(x, style);
          drawSegK(x, style);
-         drawSegM(x, style);
          drawSegN(x, style);
-      }
-      else {
-         drawSegB(x, style);  // Lowercase 'd'
+         break;
+      case 1:
+         drawSegB(x, style);
          drawSegC(x, style);
+         drawSegJ(x, style);
+         drawSegK(x, style);
+         drawSegL(x, style);
+         break;
+      case 2:
+         drawSegA(x, style);
+         drawSegB(x, style);
          drawSegD(x, style);
          drawSegE(x, style);
          drawSegG(x, style);
+         drawSegI(x, style);
+         drawSegL(x, style);
+         drawSegM(x, style);
+         break;
+      case 3:
+         drawSegA(x, style);
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegG(x, style);
+         drawSegI(x, style);
+         drawSegM(x, style);
+         break;
+      case 4:
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegH(x, style);  // Special segment just for 4
+         drawSegI(x, style);
+         drawSegJ(x, style);
+         drawSegK(x, style);
+         drawSegL(x, style);
+         break;
+      case 5:
+         drawSegA(x, style);
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegI(x, style);
+         drawSegJ(x, style);
+         drawSegM(x, style);
+         break;
+      case 6:
+         drawSegA(x, style);
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegJ(x, style);
+         drawSegN(x, style);
+         break;
+      case 7:
+         drawSegA(x, style);
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegF(x, style);  // Hooked 7
+         drawSegI(x, style);
+         drawSegJ(x, style);
+         drawSegK(x, style);
+         drawSegL(x, style);
+         break;
+      case 8:
+         drawSegA(x, style);
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         break;
+      case 9:
+         drawSegA(x, style);
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegD(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegK(x, style);
+         drawSegM(x, style);
+         break;
+      case 0xA:
+         drawSegA(x, style);
+         drawSegB(x, style);
+         drawSegC(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegK(x, style);
+         drawSegL(x, style);
+         drawSegM(x, style);
+         drawSegN(x, style);
+         break;
+      case 0xB:
+         drawSegC(x, style);     // Lowercase 'b'
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         if (style == LED_DOT_STYLE) {
+            drawSegA(x, style);  // Uppercase 'B'
+            drawSegB(x, style);
+            drawSegI(x, style);
+            drawSegM(x, style);
+            drawSegN(x, style);
+         }
+         break;
+      case 0xC:
+         drawSegA(x, style);
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegJ(x, style);
+         drawSegL(x, style);
+         drawSegN(x, style);
+         break;
+      case 0xD:
+         if (style == LED_DOT_STYLE) {
+            drawSegA(x, style);  // Uppercase 'D'
+            drawSegB(x, style);
+            drawSegC(x, style);
+            drawSegD(x, style);
+            drawSegE(x, style);
+            drawSegF(x, style);
+            drawSegI(x, style);
+            drawSegK(x, style);
+            drawSegM(x, style);
+            drawSegN(x, style);
+         }
+         else {
+            drawSegB(x, style);  // Lowercase 'd'
+            drawSegC(x, style);
+            drawSegD(x, style);
+            drawSegE(x, style);
+            drawSegG(x, style);
+         }
+         break;
+      case 0xE:
+         drawSegA(x, style);
+         drawSegD(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegI(x, style);
+         drawSegJ(x, style);
+         drawSegL(x, style);
+         drawSegM(x, style);
+         drawSegN(x, style);
+         break;
+      case 0xF:
+         drawSegA(x, style);
+         drawSegE(x, style);
+         drawSegF(x, style);
+         drawSegG(x, style);
+         drawSegI(x, style);
+         drawSegJ(x, style);
+         drawSegM(x, style);
+         drawSegN(x, style);
+         break;
       }
-      break;
-   case 0xE:
-      drawSegA(x, style);
-      drawSegD(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegI(x, style);
-      drawSegJ(x, style);
-      drawSegL(x, style);
-      drawSegM(x, style);
-      drawSegN(x, style);
-      break;
-   case 0xF:
-      drawSegA(x, style);
-      drawSegE(x, style);
-      drawSegF(x, style);
-      drawSegG(x, style);
-      drawSegI(x, style);
-      drawSegJ(x, style);
-      drawSegM(x, style);
-      drawSegN(x, style);
-      break;
    }
 }
 
@@ -1473,6 +1487,12 @@ int main(void)
                memcpy(Frame, OLEDImage, sizeof (Frame));
                updscreen();
                break;
+            case '\r':
+               for (hour = 0; hour < MAXROWS; hour++)
+                  memcpy(&Frame[hour][0], &PetrolDigits[hour][0], 21 * 6);
+               
+               updscreen();
+               break;
             case '.':
                drawSegDP(x, style);
                updscreen();
@@ -1499,6 +1519,10 @@ int main(void)
             case 'm':
             case 'M':
                displayMode = MANUAL_MODE;
+               break;
+            case 'n':
+            case 'N':
+               style = PETROL_STATION_STYLE;
                break;
             case 'u':
             case 'U':

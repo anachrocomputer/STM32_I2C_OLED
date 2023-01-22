@@ -13,7 +13,7 @@
 #define BYTES_PER_LINE  (16)  // Number of bytes of image data per line of source code
 
 
-// The frame buffer, 512 bytes
+// The frame buffer, 8192 bytes
 unsigned char Frame[MAXROWS][MAXX];
 
 void writeOLED(const char name[], const int rows, const int wd);
@@ -82,6 +82,7 @@ int readPBM(const char name[], int *const htp, int *const wdp)
    int x, y;
    int ch;
    int nb;
+   int pbmlen;
    unsigned char buf[MAXX];
    
    if ((fp = fopen(name, "r")) == NULL) {
@@ -125,13 +126,18 @@ int readPBM(const char name[], int *const htp, int *const wdp)
       return (0);
    }
    
+   if ((xsize % 8) == 0)
+      pbmlen = xsize / 8;
+   else
+      pbmlen = (xsize / 8) + 1;
+   
    /* Loop through PBM file, reading binary data */
    for (y = 0; y < ysize; y += 8) {
       for (x = 0; x < MAXX; x++)
          Frame[y / 8][x] = 0;
 
       for (i = 0; i < 8; i++) {
-         if ((nb = fread(buf, sizeof (char), xsize / 8, fp)) != (xsize / 8)) {
+         if ((nb = fread(buf, sizeof (char), pbmlen, fp)) != pbmlen) {
             if ((nb == 0) && ((y + i) >= MAXY))
                memset(buf, 0, sizeof (buf));
             else {
