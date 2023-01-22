@@ -1489,7 +1489,7 @@ int main(void)
                break;
             case '\r':
                for (hour = 0; hour < MAXROWS; hour++)
-                  memcpy(&Frame[hour][0], &PetrolDigits[hour][0], 21 * 6);
+                  memcpy(&Frame[hour][0], &PetrolDigits[hour][0], DIGIT_WIDTH * 6);
                
                updscreen();
                break;
